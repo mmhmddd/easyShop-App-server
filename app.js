@@ -3,6 +3,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const compression = require('compression');
 const connectDB = require('./config/db');
+const seedAdminUser = require('./config/seedAdmin');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const authRoutes = require('./routes/authRoutes');
@@ -20,8 +21,10 @@ const app = express();
 // Connect once per warm serverless container / once at boot locally.
 // Errors are logged but don't crash the app — individual requests
 // that need the DB will surface a clear 500 via errorHandler instead.
-connectDB().catch((err) => console.error('MongoDB connection error:', err.message));
-
+connectDB()
+  .then(() => seedAdminUser())                          // added
+  .catch((err) => console.error('MongoDB connection error:', err.message));
+  
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN === '*' ? true : (process.env.CORS_ORIGIN || '').split(','),
